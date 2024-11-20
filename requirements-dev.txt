@@ -1,0 +1,9 @@
+-r requirements.txt
+fastapi
+uvicorn
+mangum
+nest_asyncio
+boto3
+botocore
+aws-lambda-powertools
+aws-xray-sdk

@@ -1,0 +1,7 @@
+sqlalchemy
+pynamodb
+pymongo
+arrow
+starlette-context
+python-multipart==0.0.12
+cachetools

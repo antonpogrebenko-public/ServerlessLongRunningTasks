@@ -1,0 +1,123 @@
+service: long-running-task-example
+
+custom:
+  is_dev:
+    staging: true
+    other: false
+  stages:
+    - staging
+    - prod
+  contentEncoding:
+    contentCompression: 100
+  pythonRequirements:
+    pythonBin: python3
+    dockerizePip: false
+    useDownloadCache: false
+    useStaticCache: false
+    slim: true
+    slimPatternsAppendDefaults: false
+    slimPatterns:
+      - '**/*.py[c|o]'
+      - '**/__pycache__*'
+    noDeploy:
+      - boto3
+      - botocore
+
+
+provider:
+  name: aws
+  runtime: python3.12
+  architecture: arm64
+  stage: ${opt:stage, 'staging'}
+  region: us-east-1
+  versionFunctions: false
+  apiGateway:
+    binaryMediaTypes:
+      - 'multipart/form-data'
+  environment:
+    API_STAGE: ${opt:stage, 'staging'}
+    POWERTOOLS_SERVICE_NAME: LongRunningTaskExample
+    POWERTOOLS_LOG_LEVEL: INFO
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "s3:*"
+      Resource:
+        Fn::Join:
+          - ""
+          - - "arn:aws:s3:::"
+            - Ref: ServerlessDeploymentBucket
+            - "/*"
+    - Effect: Allow
+      Action:
+         - ssm:Describe*
+         - ssm:Get*
+         - ssm:List*
+         - sts:AssumeRole
+         - logs:CreateLogStream
+         - logs:CreateLogGroup
+         - logs:PutLogEvents
+         - sns:*
+         - s3:*
+         - dynamodb:*
+      Resource: "*"
+
+
+package:
+  exclude:
+    - ./**
+  include:
+    - ./src/**
+
+resources:
+  Resources:
+    SystemEventTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        TopicName: ${ssm:/${opt:stage, 'staging'}/v1/sns/system_event_topic_name}
+
+    LongRunningTasksTable:
+      Type: 'AWS::DynamoDB::Table'
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: task_id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: task_id
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+        TimeToLiveSpecification:
+          AttributeName: ttl
+          Enabled: true
+        TableName: ${ssm:/${opt:stage, 'staging'}/v1/tables/long_running_tasks_table}
+
+functions:
+  SystemEventListener:
+    handler: src/listeners/system_event_listener.consume_event
+    memorySize: 512
+    timeout: 900
+    events:
+      - sns:
+          arn: ${ssm:/${opt:stage, 'staging'}/v1/sns/system_event_topic_arn}
+          topicName: ${ssm:/${opt:stage, 'staging'}/v1/sns/system_event_topic_name}
+          displayName: SystemEventListener
+
+  ExampleAPI:
+    handler: src.app.handler
+    timeout: 30
+    memorySize: 1024
+    environment:
+      POWERTOOLS_LOG_LEVEL: INFO
+      POWERTOOLS_SERVICE_NAME: ExampleAPI
+    events:
+      - http:
+          path: /
+          method: any
+
+      - http:
+          path: /{proxy+}
+          method: any
+
+plugins:
+  - serverless-python-requirements
+  - serverless-api-compression

@@ -1,0 +1,16 @@
+{
+  "name": "long-running-task-example",
+  "version": "0.0.1",
+  "description": "Example of a long running task in AWS Lambda",
+  "author": "antony.pogrebenko@gmail.com",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://gitlab.com"
+  },
+  "dependencies": {
+    "serverless": "3.38.0",
+    "serverless-api-compression": "^1.0.1",
+    "serverless-python-requirements": "^5.1.0"
+  }
+}

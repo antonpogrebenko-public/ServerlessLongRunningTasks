@@ -1,0 +1,48 @@
+# Uncomment the following lines to use gitlab ci/cd
+# Don't forget to set the environment variables in the gitlab settings (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
+
+#image: nikolaik/python-nodejs:python3.12-nodejs22-slim
+#
+#before_script:
+#  - ls
+#  - cat package.json
+#  - npm install
+#  - ls
+#  - uname -a
+#  - pip3 install -r requirements.txt
+#
+#stages:
+##  - tests
+#  - deploy
+#
+##run-tests:
+##  stage: tests
+##  script:
+##    - export API_STAGE=stg
+##    - pytest tests/
+#
+#
+#deploy-production:
+#  stage: deploy
+#  script:
+#    - export AWS_ACCESS_KEY_ID=${aws_access_key_id}
+#    - export AWS_SECRET_ACCESS_KEY=${aws_secret_access_key}
+#    - npm i -g serverless@3.38.0
+#    - SLS_DEBUG=* serverless deploy -r us-east-1 --stage prod --verbose
+#  environment:
+#    name: prod
+#  only:
+#    - master
+#
+#deploy-staging:
+#  stage: deploy
+#
+#  script:
+#    - export AWS_ACCESS_KEY_ID=${aws_access_key_id}
+#    - export AWS_SECRET_ACCESS_KEY=${aws_secret_access_key}
+#    - npm i -g serverless@3.38.0
+#    - serverless deploy -r us-east-1 --stage staging --verbose
+#  environment:
+#    name: staging
+#  only:
+#    - dev
